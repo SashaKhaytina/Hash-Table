@@ -1,6 +1,7 @@
 #include "list.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 
 static TestStatus   cut_node       (List* list, Node* delete_node);
@@ -30,6 +31,9 @@ List* list_dtor(List* list)
     {
         if (current_node == NULL) break;
         Node* new_current_node = current_node->next;
+        #ifndef TESTNUM
+        free(current_node->value); 
+        #endif
         free(current_node);
         current_node = new_current_node;
     }
@@ -73,7 +77,12 @@ Node* list_find(List list, Elem_t element)      /* return finded node pointer. I
 
     while (current_node != NULL)
     {
+        #ifdef TESTNUM
         if (current_node->value == element) return current_node;
+        #else
+        if (strcmp(current_node->value, element) == 0) return current_node;
+        #endif
+
         current_node = current_node->next;
     }
     return NULL;
@@ -129,6 +138,9 @@ static TestStatus cut_node(List* list, Node* delete_node)
         delete_node->parent->next = delete_node->next;
         delete_node->next->parent = delete_node->parent;
     }
+    #ifndef TESTNUM
+    free(delete_node->value); // ONLE FOR STRINGS!
+    #endif
     free(delete_node);
 
     list->size--;
@@ -151,7 +163,11 @@ void list_print(const List* list)
 
 static void print_nodes(const Node* node)
 {
+    #ifndef TESTNUM
+    printf("%s ", node->value);
+    #else
     printf("%d ", node->value);
+    #endif
 
     if (node->next != NULL) print_nodes(node->next);
 }

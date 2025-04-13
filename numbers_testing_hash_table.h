@@ -16,7 +16,7 @@
  * \param[out] hash_table - Hash Table
  * \return return execution status (error code)
  */
-TestStatus test_hash_table(Hash_Table* hash_table);
+TestStatus num_test_hash_table(Hash_Table* hash_table);
 
 
 /*!
@@ -25,7 +25,7 @@ TestStatus test_hash_table(Hash_Table* hash_table);
  * \param[out] hash_table - Hash Table
  * \return return execution status (error code)
  */
-TestStatus fill_hash_table(Hash_Table* hash_table);
+TestStatus num_fill_hash_table(Hash_Table* hash_table);
 
 
 /*!

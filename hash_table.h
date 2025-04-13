@@ -26,6 +26,7 @@ bool       hash_table_find  (Hash_Table* hash_table, Elem_t element);
 void dump_hash_table(Hash_Table* hash_table);
 
 size_t hash_function(Elem_t element);   /* return ind in hash table */
+size_t FNV1aHash(char* buf);
 
 
 #endif

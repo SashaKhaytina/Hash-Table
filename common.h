@@ -19,10 +19,18 @@
 #define PRINTF_RED(string, ...)     printf("\x1b[31m" string "\x1b[0m", ##__VA_ARGS__)      /*!< Print red text. */
 
 
-
+#ifdef TESTNUM
 typedef int Elem_t;
+#else
+typedef char* Elem_t;
+#endif
 
-// extern const int HASH_TABLE_SIZE = 50;
+// #define TEST_MODE(code_for_str, code_for_num) #ifndef TESTNUM\
+//                                               code_for_str\
+//                                               #else\
+//                                               code_for_num\
+//                                               #endif
+
 
 
 enum
@@ -31,12 +39,21 @@ enum
     DELETE_STACK_WITHOUT_THIS_ELEMENT = 1 << 1,     /*!< Delete elem, whose not in the Hash table. */
     CALLOC_NODE_ERROR = 1 << 2,                     /*!< Error memory allocation when create node for list. */
     ERROR_NULL_POINTER = 1 << 3,                    /*!< Pointer is NULL */
+    ERROR_MDOE = 1 << 4                             /*!< Error mode test (called func for other mode). */
 
     // ERROR_CTOR = 1 << 1,                         /*!< Error memory allocation. */
     // ERROR_OPEN_FILE = 1 << 5,                    /*!< Error open file. */
 
     // ERROR = 1 << 6                                /*!< Default error */
 } typedef TestStatus;
+
+
+typedef struct Text Text;
+struct Text 
+{
+    char** words;
+    size_t count_words;
+};
 
 
 

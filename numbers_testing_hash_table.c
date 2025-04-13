@@ -1,18 +1,20 @@
-#include "testing_hash_table.h"
+#include "numbers_testing_hash_table.h"
 
 #include <stdlib.h>
 
-const int    ELEMENTS_COUNT = 100;
-const Elem_t MAX_ELEM       = 100;
+#ifdef TESTNUM
+const int    ELEMENTS_COUNT = 1000;
+const Elem_t MAX_ELEM       = 400;
+#endif
 
-
-TestStatus test_hash_table(Hash_Table* hash_table)
+TestStatus num_test_hash_table(Hash_Table* hash_table)
 {
+    #ifdef TESTNUM
     CHECK_SOME_IS_NULL(ERROR_NULL_POINTER, hash_table)
     TestStatus status = OK;
 
 
-    status |= fill_hash_table(hash_table);
+    status |= num_fill_hash_table(hash_table);
     CHECK_STATUS_OK(status)
 
     dump_hash_table(hash_table);
@@ -21,12 +23,18 @@ TestStatus test_hash_table(Hash_Table* hash_table)
     CHECK_STATUS_OK(status)
 
     return status;
+
+    #else
+    return ERROR_MDOE; // вообще код можно и сюда вставить, но слишком большая функция будет.
+                       // или можно просто отдельно функцию распределитель сделать.
+    #endif
 }
 
 
 
-TestStatus fill_hash_table(Hash_Table* hash_table)
+TestStatus num_fill_hash_table(Hash_Table* hash_table)
 {
+    #ifdef TESTNUM
     CHECK_SOME_IS_NULL(ERROR_NULL_POINTER, hash_table)
     TestStatus status = OK;
 
@@ -39,12 +47,17 @@ TestStatus fill_hash_table(Hash_Table* hash_table)
     }
 
     return status;
+
+    #else
+    return ERROR_MDOE;
+    #endif
 }
 
 
 
 TestStatus find_random_numbers_in_hash_table(Hash_Table* hash_table)
 {
+    #ifdef TESTNUM
     CHECK_SOME_IS_NULL(ERROR_NULL_POINTER, hash_table)
     TestStatus status = OK;
 
@@ -62,5 +75,9 @@ TestStatus find_random_numbers_in_hash_table(Hash_Table* hash_table)
     }
 
     return status;
+    
+    #else
+    return ERROR_MDOE;
+    #endif
 }
 
