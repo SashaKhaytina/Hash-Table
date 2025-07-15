@@ -1,8 +1,10 @@
 #include "hash_table.h"
 
 #include <malloc.h>
+#include <string.h>
 
-
+const int PRIME_NUM_FOR_POLIM_HASH_FUNC = 31;
+const int MOD_FOR_POLIM_HASH_FUNC       = 1e9 + 7;
 
 
 Hash_Table* hash_table_ctor(size_t size)
@@ -67,7 +69,9 @@ TestStatus hash_table_insert(Hash_Table* hash_table, Elem_t element)
     #ifdef TESTNUM
     size_t ind = hash_function(element) % hash_table->size;
     #else
-    size_t ind = FNV1aHash(element) % hash_table->size;
+    // size_t ind = FNV1aHash(element) % hash_table->size;
+    size_t ind = hash_function_polin(element) % hash_table->size;
+
     #endif
 
     if (list_find(hash_table->table[ind], element)) return OK; // no same elements
@@ -86,7 +90,8 @@ TestStatus hash_table_delete(Hash_Table* hash_table, Elem_t element)
     #ifdef TESTNUM
     size_t ind = hash_function(element) % hash_table->size;
     #else
-    size_t ind = FNV1aHash(element) % hash_table->size;
+    // size_t ind = FNV1aHash(element) % hash_table->size;
+    size_t ind = hash_function_polin(element) % hash_table->size;
     #endif
 
     status = list_delete(&(hash_table->table[ind]), element);
@@ -102,7 +107,9 @@ bool hash_table_find(Hash_Table* hash_table, Elem_t element)
     #ifdef TESTNUM
     size_t ind = hash_function(element) % hash_table->size;
     #else
-    size_t ind = FNV1aHash(element) % hash_table->size;
+    // size_t ind = FNV1aHash(element) % hash_table->size;
+    size_t ind = hash_function_polin(element) % hash_table->size;
+
     #endif
 
     if (list_find(hash_table->table[ind], element) == NULL) return false;
@@ -133,6 +140,22 @@ size_t FNV1aHash(char* buf)
 }
 
 
+size_t hash_function_polin(Elem_t element)
+{
+    int p = PRIME_NUM_FOR_POLIM_HASH_FUNC;
+    int mod = MOD_FOR_POLIM_HASH_FUNC;
+    size_t letter_sum = 0;
+    int len_str = strlen(element);
+    for (int i = 0; i < len_str; i++)
+    {
+        letter_sum += element[i] * p;
+        p = (p * p) % mod;
+    }   
+
+    return letter_sum;
+}
+
+
 // _______________ DUMP __________________
 
 void dump_hash_table(Hash_Table* hash_table)
@@ -147,3 +170,7 @@ void dump_hash_table(Hash_Table* hash_table)
         list_print(&(hash_table->table[i]));
     }
 }
+
+// intrinsic, sse, avx
+// float arr[4]
+// _mm128_f vector xmm register

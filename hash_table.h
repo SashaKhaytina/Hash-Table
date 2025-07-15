@@ -27,6 +27,8 @@ void dump_hash_table(Hash_Table* hash_table);
 
 size_t hash_function(Elem_t element);   /* return ind in hash table */
 size_t FNV1aHash(char* buf);
+size_t hash_function_polin(Elem_t element);
+
 
 
 #endif

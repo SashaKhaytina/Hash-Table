@@ -17,7 +17,9 @@ TestStatus num_test_hash_table(Hash_Table* hash_table)
     status |= num_fill_hash_table(hash_table);
     CHECK_STATUS_OK(status)
 
+    #ifdef DEBUG
     dump_hash_table(hash_table);
+    #endif
 
     status |= find_random_numbers_in_hash_table(hash_table);
     CHECK_STATUS_OK(status)

@@ -49,7 +49,7 @@ TestStatus str_fill_hash_table(Hash_Table* hash_table, Text* words)
     for (int i = 0; i < words->count_words; i++)
     {
         CHECK_STATUS_OK(status)
-        status = hash_table_insert(hash_table, words->words[i]);
+        status |= hash_table_insert(hash_table, words->words[i]);
     }
 
     return status;
