@@ -4,11 +4,11 @@
 #include <sys/time.h>
 #include <time.h>
 
-#include "hash_table.h"
+#include "Hash_Table/hash_table.h"
 
-#include "working_with_text.h"
-#include "numbers_testing_hash_table.h"
-#include "strings_testing_hash_table.h"
+#include "Processing_Text/working_with_text.h"
+#include "Tests/numbers_testing_hash_table.h"
+#include "Tests/strings_testing_hash_table.h"
 
 const int HASH_TABLE_SIZE = 250;
 const char* PROCESSED_FILE_NAME = "processed_file.txt";

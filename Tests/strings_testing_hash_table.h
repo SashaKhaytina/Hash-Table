@@ -1,7 +1,7 @@
 #ifndef STRINGS_TESTING_HASH_TABLE_H
 #define STRINGS_TESTING_HASH_TABLE_H
 
-#include "hash_table.h"
+#include "../Hash_Table/hash_table.h"
 
 /*!
  * \brief Print execution statistic to cmd

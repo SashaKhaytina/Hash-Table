@@ -1,7 +1,7 @@
 #ifndef TESTING_HASH_TABLE_H
 #define TESTING_HASH_TABLE_H
 
-#include "hash_table.h"
+#include "../Hash_Table/hash_table.h"
 
 
 // extern const int    ELEMENTS_COUNT = 100;

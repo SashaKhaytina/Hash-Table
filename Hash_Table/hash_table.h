@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "list.h"
+#include "../List/list.h"
 
 
 typedef struct Hash_Table Hash_Table;
@@ -28,6 +28,7 @@ void dump_hash_table(Hash_Table* hash_table);
 size_t hash_function(Elem_t element);   /* return ind in hash table */
 size_t FNV1aHash(char* buf);
 size_t hash_function_polin(Elem_t element);
+size_t hash_function_CRC32(Elem_t element);
 
 
 

@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#include "common.h"
+#include "../common.h"
 
 
 typedef struct Node Node;

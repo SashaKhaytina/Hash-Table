@@ -8,6 +8,11 @@ static TestStatus   cut_node       (List* list, Node* delete_node);
 static struct Node* create_new_node(Elem_t elem, Node* next, Node* parent, TestStatus* status);
 static void         print_nodes    (const Node* node);
 
+#ifdef ASM_STRCMP_OPTIM_ON
+int ASM_strcmp(const char* string1, const char* string2);
+#endif
+
+
 TestStatus list_ctor(List* list)
 {
     CHECK_SOME_IS_NULL(ERROR_NULL_POINTER, list)
@@ -79,6 +84,8 @@ Node* list_find(List list, Elem_t element)      /* return finded node pointer. I
     {
         #ifdef TESTNUM
         if (current_node->value == element) return current_node;
+        #elif ASM_STRCMP_OPTIM_ON
+        if (ASM_strcmp(current_node->value, element) == 0) return current_node;
         #else
         if (strcmp(current_node->value, element) == 0) return current_node;
         #endif
