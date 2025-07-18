@@ -3,6 +3,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <stdint.h>
+#include <nmmintrin.h>
 
 
 const int PRIME_NUM_FOR_POLIM_HASH_FUNC = 31;
@@ -13,6 +14,7 @@ const int MOD_FOR_POLIM_HASH_FUNC       = 1e9 + 7;
 const int CRC_SHIFT = 8;
 const int CRC_GIVE_LAST_EIGHT_BIT = 0xFF;
 const int CRC_STANDART_START_NUM  = 0xFFFFFFFF;
+#ifndef CRC32_INTRINSIC
 static const unsigned int crc32_table[] =
 {
   0x00000000, 0x04c11db7, 0x09823b6e, 0x0d4326d9,
@@ -80,6 +82,7 @@ static const unsigned int crc32_table[] =
   0xafb010b1, 0xab710d06, 0xa6322bdf, 0xa2f33668,
   0xbcb4666d, 0xb8757bda, 0xb5365d03, 0xb1f740b4
 };
+#endif
 #endif
 #endif
 
@@ -241,13 +244,40 @@ size_t hash_function_polin(Elem_t element)
     return letter_sum;
 }
 
+#elif CRC32_INTRINSIC
+
+size_t hash_function_CRC32(Elem_t element)
+{
+    // CRC32_intrinsic
+    uint32_t crc = CRC_STANDART_START_NUM;
+
+    while (*element != '\0')
+    {
+        if ((uintptr_t) element % 4 == 0 && element[1] != '\0' && element[2] != '\0' && element[3] != '\0') 
+        {
+            crc = _mm_crc32_u32(crc, *(const uint32_t*) element);        // 4 байта подряд с начала берет (4 буквы)
+            element += 4;
+        }
+
+        else
+        {
+            crc = _mm_crc32_u8(crc, *(const uint8_t*) element);          // 1 байт подряд с начала берет (1 буква)
+            element++;
+        }   
+    }
+    
+    return crc ^ CRC_STANDART_START_NUM;
+}
+
+
 #else
 size_t hash_function_CRC32(Elem_t element)
 {
     // CRC32
     uint32_t crc = CRC_STANDART_START_NUM;
     
-    while (*element != '\0') {
+    while (*element != '\0') 
+    {
         uint8_t byte = *element;
         crc = (crc >> CRC_SHIFT) ^ crc32_table[(crc ^ byte) & CRC_GIVE_LAST_EIGHT_BIT];
         element++;
