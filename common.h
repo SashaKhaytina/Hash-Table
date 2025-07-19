@@ -1,6 +1,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include <stdio.h>
 
 #define CHECK_STATUS_OK(status) if (status != OK) return status;
 
@@ -54,8 +55,12 @@ enum
     OK = 0,                                         /*!< Everything is correct. */
     DELETE_STACK_WITHOUT_THIS_ELEMENT = 1 << 1,     /*!< Delete elem, whose not in the Hash table. */
     CALLOC_NODE_ERROR = 1 << 2,                     /*!< Error memory allocation when create node for list. */
-    ERROR_NULL_POINTER = 1 << 3,                    /*!< Pointer is NULL */
-    ERROR_MDOE = 1 << 4                             /*!< Error mode test (called func for other mode). */
+    CALLOC_LIST_ERROR = 1 << 3,                     /*!< Error memory allocation when create node for list. */
+    ERROR_NULL_POINTER = 1 << 4,                    /*!< Pointer is NULL */
+    ERROR_MDOE = 1 << 5,                            /*!< Error mode test (called func for other mode). */
+    ERROR_FULL_LIST = 1 << 6,
+    ERROR_IND_LIST = 1 << 7,
+    DELETE_EMPTY_LIST = 1 << 8
 
     // ERROR_CTOR = 1 << 1,                         /*!< Error memory allocation. */
     // ERROR_OPEN_FILE = 1 << 5,                    /*!< Error open file. */

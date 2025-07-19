@@ -39,6 +39,7 @@ int main()
 
     free(words->words);
     free(words);
+    //FIXME: почисти слова
     #endif
 
     hash_table_dtor(hash_table);

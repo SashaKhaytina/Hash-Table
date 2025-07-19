@@ -4,13 +4,18 @@
 #include <string.h>
 
 
-static TestStatus   cut_node       (List* list, Node* delete_node);
-static struct Node* create_new_node(Elem_t elem, Node* next, Node* parent, TestStatus* status);
-static void         print_nodes    (const Node* node);
+const size_t LEN_LIST = 61;
+const int NO_ELEM_IN_LIST = -1;
+
+
+static int  find_ind_in_array_by_ind_in_list(List* list, int ind);
+static void print_nodes(const List* list, const Node* node);
 
 #ifdef ASM_STRCMP_OPTIM_ON
 int ASM_strcmp(const char* string1, const char* string2);
 #endif
+
+
 
 
 TestStatus list_ctor(List* list)
@@ -19,40 +24,70 @@ TestStatus list_ctor(List* list)
     TestStatus status = OK;
 
 
-    list->root = NULL;
+    list->array = (Node*) calloc(LEN_LIST, sizeof(Node));
+    CHECK_SOME_IS_NULL(CALLOC_LIST_ERROR, list->array);
+    
+    list->array[0].value = POISON_ELEM_LIST; 
+    list->array[0].next = 0;
+    list->array[0].prev = 0;
+
+    for (int i = 1; i < LEN_LIST; i++)
+    {
+        list->array[i].value = POISON_ELEM_LIST; 
+        list->array[i].next = i + 1;
+        list->array[i].prev = -1;
+    } 
+
+    list->array[LEN_LIST - 1].value = POISON_ELEM_LIST; 
+    list->array[LEN_LIST - 1].next = 0;
+    list->array[LEN_LIST - 1].prev = -1;
+
     list->size = 0;
+
+    list->ind_first_free_node = 1;
 
     return status;
 }
 
-
 List* list_dtor(List* list)
-{   
+{
     CHECK_SOME_IS_NULL(NULL, list)
 
-
-    Node* current_node = list->root; 
-    for (size_t i = 0; i < list->size; i++)
-    {
-        if (current_node == NULL) break;
-        Node* new_current_node = current_node->next;
-        #ifndef TESTNUM
-        free(current_node->value); 
-        #endif
-        free(current_node);
-        current_node = new_current_node;
-    }
-
+    free(list->array);
     return NULL;
 }
 
 
-TestStatus list_push(List* list, Elem_t elem)
+TestStatus list_push(List* list, Elem_t elem, int ind)
 {
-    CHECK_SOME_IS_NULL(ERROR_NULL_POINTER, list)
+    CHECK_SOME_IS_NULL(ERROR_NULL_POINTER, list, elem)
     TestStatus status = OK;
 
-    list->root = create_new_node(elem, list->root, NULL, &status); 
+
+    if (list->ind_first_free_node == 0)
+    {
+        printf("Список заполнен. Добавление невозможно\n");
+        return ERROR_FULL_LIST;
+    }
+
+    if (ind > list->size + 1) // добавляет на индекс, который больше чем длина + 1
+    {
+        printf("Превышение максимального на данный момент индекса\n"); // переделать надпись
+        return ERROR_IND_LIST;
+    }
+
+    int was_ind = find_ind_in_array_by_ind_in_list(list, ind);
+    int empty_ind = list->ind_first_free_node;
+
+    // Обновляем ind_first_free_node
+    list->ind_first_free_node = list->array[list->ind_first_free_node].next;
+
+    list->array[empty_ind].value = elem;
+    list->array[list->array[was_ind].prev].next = empty_ind;
+    list->array[empty_ind].next = was_ind;
+
+    list->array[empty_ind].prev = list->array[was_ind].prev;
+    list->array[was_ind].prev = empty_ind;
 
     list->size++;
 
@@ -60,115 +95,103 @@ TestStatus list_push(List* list, Elem_t elem)
     return status;
 }
 
+
+
 TestStatus list_delete(List* list, Elem_t elem)
 {
     CHECK_SOME_IS_NULL(ERROR_NULL_POINTER, list)
     TestStatus status = OK;
 
+    int ind = list_find(list, elem);
+    if (ind == NO_ELEM_IN_LIST) return DELETE_STACK_WITHOUT_THIS_ELEMENT;
 
-    Node* delete_node = list_find(*list, elem);
-    status = cut_node(list, delete_node);
-
-    return status;
+    return list_delete_by_ind(list, ind);
 }
 
 
 
-
-
-Node* list_find(List list, Elem_t element)      /* return finded node pointer. If this value not in table -> return NULL */
-{
-    Node* current_node = list.root;
-
-    while (current_node != NULL)
-    {
-        #ifdef TESTNUM
-        if (current_node->value == element) return current_node;
-        #elif ASM_STRCMP_OPTIM_ON
-        if (ASM_strcmp(current_node->value, element) == 0) return current_node;
-        #else
-        if (strcmp(current_node->value, element) == 0) return current_node;
-        #endif
-
-        current_node = current_node->next;
-    }
-    return NULL;
-}
-
-
-
-static struct Node* create_new_node(Elem_t elem, Node* next, Node* parent, TestStatus* status)
-{
-    CHECK_SOME_IS_NULL(NULL, status)
-    if ((*status) != OK) return NULL;
-
-
-    Node* new_node = (struct Node*) calloc(1, sizeof(Node));
-    if (new_node == NULL)
-    {
-        *status = CALLOC_NODE_ERROR;
-        return NULL;
-    }
-
-    new_node->value  = elem;
-    new_node->next = next;
-    new_node->parent = parent;
-
-    return new_node;
-}
-
-
-static TestStatus cut_node(List* list, Node* delete_node)
+TestStatus list_delete_by_ind(List* list, int ind)
 {
     CHECK_SOME_IS_NULL(ERROR_NULL_POINTER, list)
     TestStatus status = OK;
 
 
-    if (delete_node == NULL) return DELETE_STACK_WITHOUT_THIS_ELEMENT;
-
-
-    if (delete_node->parent == NULL)
+    if (list->size == 0)
     {
-        if (delete_node->parent == NULL) list->root = NULL;
-        else
-        {
-            list->root = delete_node->next;
-            delete_node->next->parent = NULL;
-        }
+        printf("Попытка удаления из пустого списка\n");
+        return DELETE_EMPTY_LIST;
     }
-    else if (delete_node->parent == NULL)
+    if (0 >= ind || ind >= list->size)
     {
-        delete_node->parent->next = NULL;
+        printf("Incorrect index\n");
+        return ERROR_IND_LIST;
     }
-    else
-    {
-        delete_node->parent->next = delete_node->next;
-        delete_node->next->parent = delete_node->parent;
-    }
-    #ifndef TESTNUM
-    free(delete_node->value); // ONLE FOR STRINGS!
-    #endif
-    free(delete_node);
 
+    int was_ind = find_ind_in_array_by_ind_in_list(list, ind);
+
+    list->array[list->array[was_ind].next].prev = list->array[was_ind].prev;
+    list->array[list->array[was_ind].prev].next = list->array[was_ind].next;
     list->size--;
+
+    list->array[was_ind].value = POISON_ELEM_LIST;
+    list->array[was_ind].prev = -1;
+    // list->next[was_ind] = -1;
+
+    // Обновляем ind_first_free_node
+    list->array[was_ind].next = list->ind_first_free_node;
+    list->ind_first_free_node = was_ind;
 
     return status;
 }
 
 
+int list_find(List* list, Elem_t element)
+{
+    int current_node = list->array[0].next; // TAIL
+
+    for (int step = 0; step < list->size; step++) 
+    {
+        #ifdef TESTNUM
+        if (list->array[current_node].value == element) return current_node;
+        #elif ASM_STRCMP_OPTIM_ON
+        if (ASM_strcmp(list->array[current_node].value, element) == 0) return current_node;
+        #else
+        if (strcmp(list->array[current_node].value, element) == 0) return current_node;
+        #endif
+
+        current_node = list->array[current_node].next;
+    }
+
+    return NO_ELEM_IN_LIST;
+}
+
+
+
+static int find_ind_in_array_by_ind_in_list(List* list, int ind)
+{
+    int current_node = list->array[0].next; // TAIL
+
+    for (int step = 0; step < ind; step++) current_node = list->array[current_node].next;
+
+    return current_node;
+}
+
+
+
 // _______________ DUMP __________________
+
 
 void list_print(const List* list)
 {
     printf("LIST:\nsize - %lu\n", list->size);
 
-    if (list->root != NULL) print_nodes(list->root);
+    if (list->size != 0) print_nodes(list, &(list->array[list->array[0].next]));
 
     printf("\n\n");
 }
 
 
-static void print_nodes(const Node* node)
+static void print_nodes(const List* list, const Node* node)
 {
     #ifndef TESTNUM
     printf("%s ", node->value);
@@ -176,6 +199,7 @@ static void print_nodes(const Node* node)
     printf("%d ", node->value);
     #endif
 
-    if (node->next != NULL) print_nodes(node->next);
+    if (node->next != 0) print_nodes(list, &(list->array[node->next]));
 }
+
 

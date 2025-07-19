@@ -6,12 +6,14 @@
 #include <nmmintrin.h>
 
 
-const int PRIME_NUM_FOR_POLIM_HASH_FUNC = 31;
-const int MOD_FOR_POLIM_HASH_FUNC       = 1e9 + 7;
+extern const int NO_ELEM_IN_LIST;
+const int        PRIME_NUM_FOR_POLIM_HASH_FUNC = 31;
+const int        MOD_FOR_POLIM_HASH_FUNC       = 1e9 + 7;
+
 
 #ifndef FNV
 #ifndef POLIN
-const int CRC_SHIFT = 8;
+const int CRC_SHIFT               = 8;
 const int CRC_GIVE_LAST_EIGHT_BIT = 0xFF;
 const int CRC_STANDART_START_NUM  = 0xFFFFFFFF;
 #ifndef CRC32_INTRINSIC
@@ -104,7 +106,7 @@ Hash_Table* hash_table_ctor(size_t size)
     for (size_t i = 0; i < hash_table->size; i++)
     {
         List* current_list = &(hash_table->table[i]);
-        list_ctor(current_list);                        // тут не нули будут..? Sasha pohody shizy slovila
+        list_ctor(current_list);                        
     }
 
     return hash_table;
@@ -118,17 +120,6 @@ Hash_Table* hash_table_dtor(Hash_Table* hash_table)
     for (size_t i = 0; i < hash_table->size; i++)
     {
         list_dtor(&(hash_table->table[i]));
-
-        // No lose mem here?
-
-        /*
-        
-        [   | list |   |   | ] - table
-              |
-               ->[node] -> [node] -> [] -> ...
-        
-        */
-
     }
     
     free(hash_table->table); 
@@ -148,18 +139,14 @@ TestStatus hash_table_insert(Hash_Table* hash_table, Elem_t element)
     
     #ifdef TESTNUM
     size_t ind = hash_function(element) % hash_table->size;
-    #elif FNV
-    size_t ind = FNV1aHash(element) % hash_table->size;
-    #elif POLIN
-    size_t ind = hash_function_polin(element) % hash_table->size;
     #else
     size_t ind = hash_function_CRC32(element) % hash_table->size;
 
 
     #endif
 
-    if (list_find(hash_table->table[ind], element)) return OK; // no same elements
-    status = list_push(&(hash_table->table[ind]), element);
+    if (list_find(&(hash_table->table[ind]), element) != NO_ELEM_IN_LIST) return OK;                         // no same elements
+    status = list_push(&(hash_table->table[ind]), element, hash_table->table[ind].size + 1);
 
     return status;
 }
@@ -173,10 +160,6 @@ TestStatus hash_table_delete(Hash_Table* hash_table, Elem_t element)
     
     #ifdef TESTNUM
     size_t ind = hash_function(element) % hash_table->size;
-    #elif FNV
-    size_t ind = FNV1aHash(element) % hash_table->size;
-    #elif POLIN
-    size_t ind = hash_function_polin(element) % hash_table->size;
     #else
     size_t ind = hash_function_CRC32(element) % hash_table->size;
 
@@ -194,58 +177,30 @@ bool hash_table_find(Hash_Table* hash_table, Elem_t element)
 
     #ifdef TESTNUM
     size_t ind = hash_function(element) % hash_table->size;
-    #elif FNV
-    size_t ind = FNV1aHash(element) % hash_table->size;
-    #elif POLIN
-    size_t ind = hash_function_polin(element) % hash_table->size;
     #else
     size_t ind = hash_function_CRC32(element) % hash_table->size;
 
 
     #endif
 
-    if (list_find(hash_table->table[ind], element) == NULL) return false;
+    if (list_find(&(hash_table->table[ind]), element) == NO_ELEM_IN_LIST) return false;
     return true;
 }
 
 
+
+
 // ___________________ Hash_Functions __________________________
 
-#ifdef FNV
-size_t FNV1aHash(char* buf)
+#ifdef TESTNUM
+
+size_t hash_function(Elem_t element) // ее использовать по модулю длины хеш-таблицы
 {
-    
-    size_t FNV_32_PRIME = 0x01000193;
-    size_t hval = 0x811c9dc5;
-
-    while (*buf)
-    {
-        hval ^= (size_t) *buf; // xor with ASCII code letter
-        buf++;
-        hval *= FNV_32_PRIME;
-    }
-
-    return hval;
-}
-
-#elif POLIN
-size_t hash_function_polin(Elem_t element)
-{
-    int p = PRIME_NUM_FOR_POLIM_HASH_FUNC;
-    int mod = MOD_FOR_POLIM_HASH_FUNC;
-    size_t letter_sum = 0;
-    int len_str = strlen(element);
-    for (int i = 0; i < len_str; i++)
-    {
-        letter_sum += element[i] * p;
-        p = (p * p) % mod;
-    }   
-
-    return letter_sum;
+    return (size_t) element;    // ┐(￣ヘ￣)┌  <(Good hash-function)
 }
 
 #elif CRC32_INTRINSIC
-
+__attribute__((noinline))
 size_t hash_function_CRC32(Elem_t element)
 {
     // CRC32_intrinsic
@@ -271,6 +226,8 @@ size_t hash_function_CRC32(Elem_t element)
 
 
 #else
+
+__attribute__((noinline)) 
 size_t hash_function_CRC32(Elem_t element)
 {
     // CRC32
@@ -286,6 +243,8 @@ size_t hash_function_CRC32(Elem_t element)
     return crc ^ CRC_STANDART_START_NUM;
 }
 #endif
+
+
 
 
 // _______________ DUMP __________________
