@@ -145,25 +145,97 @@ TestStatus list_delete_by_ind(List* list, int ind)
 }
 
 
+
+
 int list_find(List* list, Elem_t element)
 {
-    int current_node = list->array[0].next; // TAIL
+    #ifndef __ASM__INSERT_OPTIM_ON
+
+    Node* list_array = list->array;
+    int current_node = list_array[0].next; // TAIL
+
+    #else
+
+    Node* list_array = NULL;
+    int current_node = 0;
+
+    __asm__ __volatile__(
+    "mov (%[list]), %%rax \n"                   // list->array = [list]
+    "mov 8(%%rax), %%ebx \n"                    // list_array[0].next (because first elem in Node - Elem_t- 8 byte) (add $8, %%rax    mov (%%rax), %%ebx)
+
+    : "=a" (list_array), "=b" (current_node)
+    : [list] "r" (list)
+    : "memory"                                  // Work with memory
+    );
+    #endif
+
 
     for (int step = 0; step < list->size; step++) 
     {
-        #ifdef TESTNUM
-        if (list->array[current_node].value == element) return current_node;
-        #elif ASM_STRCMP_OPTIM_ON
-        if (ASM_strcmp(list->array[current_node].value, element) == 0) return current_node;
+        #ifndef __ASM__INSERT_OPTIM_ON
+
+        Node   current_node_in_list       = list_array[current_node];
+        Elem_t value_current_node_in_list = current_node_in_list.value;
+
         #else
-        if (strcmp(list->array[current_node].value, element) == 0) return current_node;
+        Node*   current_node_in_list      = NULL;
+        Elem_t value_current_node_in_list = NULL;
+
+        size_t current_node_mem = current_node * sizeof(Node);
+
+        __asm__ __volatile__(
+        "mov %[list_array], %%rbx \n"
+        "add %[current_node], %%rbx \n"                                     // rbx - pointer to list_array[current_node]
+        "mov (%%rbx), %%rax \n"                                             // rax - current_node_in_list.value, because value - first elem in Node 
+
+        : "=a" (value_current_node_in_list), "=b" (current_node_in_list)
+        : [list_array] "r" (list_array), [current_node] "r" (current_node_mem)
+        : "memory"                                                          // Work with memory
+        );
         #endif
 
-        current_node = list->array[current_node].next;
+
+        #ifdef TESTNUM
+        if (value_current_node_in_list == element) return current_node;
+        #elif ASM_STRCMP_OPTIM_ON
+        if (ASM_strcmp(value_current_node_in_list, element) == 0) return current_node;
+        #else
+        if (strcmp(value_current_node_in_list, element) == 0) return current_node;
+        #endif
+
+
+        #ifndef __ASM__INSERT_OPTIM_ON
+        current_node = current_node_in_list.next;
+        #else
+        current_node = current_node_in_list->next;
+        #endif
     }
 
     return NO_ELEM_IN_LIST;
 }
+
+
+
+
+// int list_find(List* list, Elem_t element)
+// {
+//     int current_node = list->array[0].next; // TAIL
+
+//     for (int step = 0; step < list->size; step++) 
+//     {
+//         #ifdef TESTNUM
+//         if (list->array[current_node].value == element) return current_node;
+//         #elif ASM_STRCMP_OPTIM_ON
+//         if (ASM_strcmp(list->array[current_node].value, element) == 0) return current_node;
+//         #else
+//         if (strcmp(list->array[current_node].value, element) == 0) return current_node;
+//         #endif
+
+//         current_node = list->array[current_node].next;
+//     }
+
+//     return NO_ELEM_IN_LIST;
+// }
 
 
 
