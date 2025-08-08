@@ -49,6 +49,20 @@ Text* get_elements(FILE* file)
 
 
 
+Text* free_struct_text(Text* words)
+{
+    for (int i = 0; i < words->count_words; i++)
+    {
+        free(words->words[i]);
+    }
+    free(words->words);
+    free(words);
+
+    return NULL;
+}
+
+
+
 size_t size_file(FILE* file)
 {
     size_t size = 0;

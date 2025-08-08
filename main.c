@@ -37,9 +37,7 @@ int main()
 
     COUNT_TIME(str_test_hash_table(hash_table, words);)
 
-    free(words->words);
-    free(words);
-    //FIXME: почисти слова
+    free_struct_text(words);
     #endif
 
     hash_table_dtor(hash_table);
