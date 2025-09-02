@@ -30,10 +30,13 @@ int main()
     Text* words = get_elements(file);
     fclose(file);
 
+    #ifdef DEBUG
+    // printf("All words:\n");
     // for (int i = 0; i < words->count_words; i++)
     // {
     //     printf("%s - str\n", words->words[i]);
     // }
+    #endif
 
     COUNT_TIME(str_test_hash_table(hash_table, words);)
 

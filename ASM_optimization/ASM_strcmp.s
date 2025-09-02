@@ -38,7 +38,7 @@ global ASM_strcmp
 ; ENTER: NONE
 ;--------------------------
 ; DESTR:
-;   eax - возвращаемое значение
+;   eax - return value
 ;==========================================================
 ASM_strcmp:
             push rbx
